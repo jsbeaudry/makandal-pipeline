@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.bin
+*.safetensors
+*.jsonl
+*.jsonl.gz
+runs/
+prepared/
+packed/
+data/
