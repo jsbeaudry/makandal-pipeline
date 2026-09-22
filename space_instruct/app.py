@@ -90,6 +90,8 @@ def answer(instruction, new_tokens, temperature, penalty):
 try:
     READY = load()
 except Exception as error:
+    # Also to the log: the page shows this, but whoever reads the Space logs should not have to guess.
+    print('could not load {}: {}'.format(REPO, error), flush=True)
     READY = ('**Could not load the model.** {}\n\n`{}` is private, so this Space needs an `HF_TOKEN` '
              'secret with read access (Settings, then Variables and secrets).'.format(str(error)[:200], REPO))
 
