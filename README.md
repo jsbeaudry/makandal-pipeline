@@ -82,6 +82,36 @@ function-word rate (0.396 vs 0.403), but the Kreyòl prompt kept accents on 100 
 length, Kreyòl function-word floor, French ceiling, teacher commentary, duplicates — so the log shows what
 is being thrown away while there is still time to react.
 
+Then tune, with the loss on the response only:
+
+```bash
+python3 pipeline/test_train_sft.py --tokenizer corpus/tokenizer
+python3 pipeline/train_sft.py --data sft-30k.jsonl --base jsbeaudry/makandal-base \
+    --out runs/sft --epochs 3 --batch-size 16 --grad-accum 4 --lr 5e-5
+```
+
+The prompt's label positions are `-100`, so gradients come only from the response and its
+`<|endoftext|>` — 48.5% of the tokens here. Without that, half the capacity goes into learning to write
+instructions, which nobody will ask the model to do.
+
+Measured with the real tokenizer over all 30,000 pairs before choosing anything:
+
+| | median | p90 | p99 | max |
+|---|---|---|---|---|
+| prompt | 37 | 59 | 73 | 119 |
+| response + eos | 36 | 54 | 65 | 99 |
+| total | 76 | 96 | 115 | **158** |
+
+Nothing needs truncating against a 1,024-token block, so the failure that produced the first model
+cannot occur — and `encode()` drops an over-long example rather than cutting its tail, because a cut
+response teaches the model to stop mid-sentence. Padding every batch to a fixed width would waste 85%
+of the compute, so batches are length-bucketed instead.
+
+**Prompt masking fails silently.** A script that masks nothing still trains, still reports a falling
+loss, and still produces a model. `pipeline/test_train_sft.py` therefore recomputes the loss by hand
+over the supervised positions and demands an exact match, which also pins the off-by-one between logits
+and labels, then runs the whole loop end to end on a tiny random model. Run it before spending GPU time.
+
 ## Running on a pod
 
 `pod/` holds entry points that clone this repository, so no code has to travel through an API field:
