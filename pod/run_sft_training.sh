@@ -13,6 +13,7 @@ FILE="${FILE:-sft-30k.jsonl}"
 TARGET="${TARGET:-jsbeaudry/makandal-instruct}"
 EPOCHS="${EPOCHS:-3}"
 REPO="${REPO:-https://github.com/jsbeaudry/makandal-pipeline.git}"
+BRANCH="${BRANCH:-main}"
 cd /workspace || exit 1
 
 echo "[pod] $(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>/dev/null || echo 'no gpu')"
@@ -23,7 +24,7 @@ python3 -c 'import torch; print("[pod] torch", torch.__version__, torch.cuda.get
   || { echo '[pod] FATAL: cuda unusable on this host'; sleep infinity; }
 
 rm -rf /workspace/repo
-git clone --depth 1 "$REPO" /workspace/repo || { echo '[pod] FATAL: clone failed'; sleep infinity; }
+git clone --depth 1 --branch "$BRANCH" "$REPO" /workspace/repo || { echo '[pod] FATAL: clone failed'; sleep infinity; }
 
 python3 -c "
 from huggingface_hub import hf_hub_download
