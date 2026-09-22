@@ -72,11 +72,21 @@ FRENCH_WORDS = set(('les des est une dans pour avec sont cette nous vous leur ma
                     'avoir que qui par sur ses ces elle ils vos votre nos avez etes cest dont ainsi').split())
 WORD = re.compile(r"[a-z']+")
 META = re.compile(r'^(men yo|here are|voici|d[ak]ò|bien s|sure[,!]|of course)', re.I)
+PUNCT = re.compile(r'[^a-z0-9 ]+')
 
 
 def fold(text):
     return ''.join(c for c in unicodedata.normalize('NFD', text.lower())
                    if unicodedata.category(c) != 'Mn')
+
+
+def dedup_key(instruction):
+    """Two instructions that differ only in quoting or final punctuation are one instruction.
+
+    The first 30k run keyed on the folded text as-is, which let through pairs like
+    "Ban m liv la kounye a." and "Ban m liv la kounye a!" — 0.57% of the set.
+    """
+    return ' '.join(PUNCT.sub(' ', fold(instruction)).split())[:160]
 
 
 def rates(text):
@@ -174,7 +184,7 @@ def main(ask=None):
                 if why:
                     dropped[why] = dropped.get(why, 0) + 1
                     continue
-                key = fold(pair['enstriksyon'])[:160]
+                key = dedup_key(pair['enstriksyon'])
                 if key in seen:
                     dropped['duplicate'] = dropped.get('duplicate', 0) + 1
                     continue
