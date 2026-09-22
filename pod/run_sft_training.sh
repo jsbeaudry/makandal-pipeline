@@ -16,7 +16,9 @@ REPO="${REPO:-https://github.com/jsbeaudry/makandal-pipeline.git}"
 cd /workspace || exit 1
 
 echo "[pod] $(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>/dev/null || echo 'no gpu')"
-pip install -q --no-input 'transformers>=4.44' huggingface_hub hf_transfer 2>&1 | tail -2
+# Pinned below 5: the checks and the local dry run were done on 4.56, and a major bump is not
+# something to discover on a rented GPU.
+pip install -q --no-input 'transformers>=4.44,<5' huggingface_hub hf_transfer 2>&1 | tail -2
 python3 -c 'import torch; print("[pod] torch", torch.__version__, torch.cuda.get_device_name(0))' \
   || { echo '[pod] FATAL: cuda unusable on this host'; sleep infinity; }
 

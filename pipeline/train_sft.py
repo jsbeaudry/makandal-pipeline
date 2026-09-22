@@ -196,8 +196,7 @@ def main():
     steps_per_epoch = max(1, len(build_batches(lengths, args.batch_size, generator)) // args.grad_accum)
     total_steps = max(1, int(args.epochs * steps_per_epoch))
     val_chunks = build_batches([len(e["ids"]) for e in val], args.batch_size, generator)
-    probes = [val[0], val[len(val) // 2]] and [val_rows[0]["enstriksyon"],
-                                               val_rows[len(val_rows) // 2]["enstriksyon"]]
+    probes = [val_rows[0]["enstriksyon"], val_rows[len(val_rows) // 2]["enstriksyon"]]
     params = sum(q.numel() for q in model.parameters())
     print(f"{params / 1e6:.1f}M parameters | {device}{' bf16' if use_bf16 else ' fp32'} | "
           f"{args.batch_size * args.grad_accum} examples per step | {total_steps:,} steps "
