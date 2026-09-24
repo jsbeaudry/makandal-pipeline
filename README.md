@@ -82,6 +82,27 @@ function-word rate (0.396 vs 0.403), but the Kreyòl prompt kept accents on 100 
 length, Kreyòl function-word floor, French ceiling, teacher commentary, duplicates — so the log shows what
 is being thrown away while there is still time to react.
 
+## Measuring Kreyòl
+
+```bash
+python3 eval/kreyol_bench.py Qwen/Qwen3-1.7B runs/kreyol-sft --limit 150
+```
+
+Three scores, because they fail independently: **XCOPA ht** accuracy for whether a model understands
+Kreyòl (two-way, so 50 is chance), **FLORES+ chrF++** for whether it can produce Kreyòl (character
+level, because a correct sentence should not be punished for choosing another spelling), and the
+function-word rate on free generation for whether it answers in Kreyòl at all rather than drifting
+into French.
+
+**These benchmarks are clean here and almost nowhere else.** xP3x `hat_Latn` *is* FLORES and XCOPA, and
+it sits in most multilingual instruction mixes, so a model trained on it has already seen the test set.
+`build_corpus.py` excludes xP3x for exactly this reason. That decision is what makes these numbers
+worth reporting, and it means a score from a model whose training data you do not know is not
+comparable to one of these.
+
+FLORES+ is used rather than `facebook/flores`, which is gated: the same 1,012 devtest sentences,
+aligned across languages by id, which the script asserts before scoring.
+
 ## Running on a pod
 
 `pod/` holds entry points that clone this repository, so no code has to travel through an API field:
